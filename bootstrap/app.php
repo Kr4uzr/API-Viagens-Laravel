@@ -1,6 +1,5 @@
 <?php
 
-use App\Exceptions\BusinessRuleException;
 use App\Models\TravelOrder;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -23,14 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-
-        $exceptions->render(function (BusinessRuleException $e, Request $request) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => $e->getMessage(),
-                ], $e->getStatusCode());
-            }
-        });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {
             if ($request->expectsJson()) {
@@ -83,6 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Erro interno do servidor.',
+                    'error' => $e->getMessage()
                 ], 500);
             }
         });

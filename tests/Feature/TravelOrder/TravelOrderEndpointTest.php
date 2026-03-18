@@ -215,6 +215,80 @@ class TravelOrderEndpointTest extends TestCase
     }
 
     // ──────────────────────────────────────────────
+    //  PATCH /api/travel-orders/{id} (updateDetails)
+    // ──────────────────────────────────────────────
+
+    public function test_owner_can_update_travel_order_details_when_requested(): void
+    {
+        $order = TravelOrder::factory()->create(['user_id' => $this->user->id, 'status' => TravelOrderStatus::Requested]);
+
+        $payload = [
+            'destination' => 'Lisboa, Portugal',
+            'departure_date' => now()->addWeek()->format('Y-m-d'),
+            'return_date' => now()->addWeeks(2)->format('Y-m-d'),
+        ];
+
+        $response = $this->patchJson(
+            "/api/travel-orders/{$order->id}",
+            $payload,
+            $this->authHeaders()
+        );
+
+        $response->assertStatus(200)
+            ->assertJsonFragment([
+                'destination' => 'Lisboa, Portugal',
+                'solicitante' => $this->user->name,
+            ]);
+
+        $this->assertDatabaseHas('travel_orders', [
+            'id' => $order->id,
+            'destination' => 'Lisboa, Portugal',
+        ]);
+    }
+
+    public function test_owner_cannot_update_travel_order_details_when_approved_or_cancelled(): void
+    {
+        $order = TravelOrder::factory()->approved()->create(['user_id' => $this->user->id]);
+
+        $payload = [
+            'destination' => 'Lisboa, Portugal',
+            'departure_date' => now()->addWeek()->format('Y-m-d'),
+            'return_date' => now()->addWeeks(2)->format('Y-m-d'),
+        ];
+
+        $response = $this->patchJson(
+            "/api/travel-orders/{$order->id}",
+            $payload,
+            $this->authHeaders()
+        );
+
+        $response->assertStatus(409)
+            ->assertJsonFragment([
+                'message' => 'Não foi possível alterar o pedido de viagem, pois ele já foi aprovado ou cancelado!',
+            ]);
+    }
+
+    public function test_owner_cannot_update_travel_order_details_of_other_user(): void
+    {
+        $otherUser = User::factory()->create();
+        $order = TravelOrder::factory()->create(['user_id' => $otherUser->id]);
+
+        $payload = [
+            'destination' => 'Lisboa, Portugal',
+            'departure_date' => now()->addWeek()->format('Y-m-d'),
+            'return_date' => now()->addWeeks(2)->format('Y-m-d'),
+        ];
+
+        $response = $this->patchJson(
+            "/api/travel-orders/{$order->id}",
+            $payload,
+            $this->authHeaders()
+        );
+
+        $response->assertStatus(403);
+    }
+
+    // ──────────────────────────────────────────────
     //  PATCH /api/travel-orders/{id}/status (updateStatus)
     // ──────────────────────────────────────────────
 
@@ -310,7 +384,7 @@ class TravelOrderEndpointTest extends TestCase
             ['Authorization' => "Bearer $managerToken"]
         );
 
-        $response->assertStatus(422)
+        $response->assertStatus(409)
             ->assertJsonFragment([
                 'message' => 'Não foi possível cancelar o pedido de viagem, pois a data de ida já passou!',
             ]);

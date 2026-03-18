@@ -51,4 +51,13 @@ interface TravelOrderRepositoryInterface
      * @return TravelOrder
      */
     public function updateStatus(TravelOrder $order, string $status): TravelOrder;
+
+    /**
+     * Atualiza os detalhes do pedido (destino e datas).
+     *
+     * @param TravelOrder $order
+     * @param array<string, mixed> $data
+     * @return TravelOrder
+     */
+    public function updateDetails(TravelOrder $order, array $data): TravelOrder;
 }

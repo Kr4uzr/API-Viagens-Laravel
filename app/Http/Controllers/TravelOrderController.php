@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ListTravelOrdersRequest;
 use App\Http\Requests\StoreTravelOrderRequest;
 use App\Http\Requests\UpdateTravelOrderStatusRequest;
+use App\Http\Requests\UpdateTravelOrderRequest;
 use App\Http\Resources\TravelOrderResource;
 use App\Models\TravelOrder;
 use App\Services\TravelOrderService;
@@ -95,6 +96,25 @@ class TravelOrderController extends Controller
         $this->authorize('updateStatus', $travelOrder);
 
         $order = $this->service->updateStatus($travelOrder, $request->validated('status'));
+
+        return new TravelOrderResource($order);
+    }
+
+    /**
+     * Atualiza os detalhes (destino e datas) do pedido de viagem.
+     *
+     * A regra de negócio permite a edição apenas pelo solicitante e somente
+     * quando o pedido ainda estiver no status "requested".
+     *
+     * @param UpdateTravelOrderRequest $request
+     * @param TravelOrder $travelOrder
+     * @return TravelOrderResource
+     */
+    public function updateDetails(UpdateTravelOrderRequest $request, TravelOrder $travelOrder): TravelOrderResource
+    {
+        $this->authorize('updateDetails', $travelOrder);
+
+        $order = $this->service->updateDetails($travelOrder, $request->validated());
 
         return new TravelOrderResource($order);
     }

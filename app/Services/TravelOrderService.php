@@ -69,6 +69,30 @@ class TravelOrderService
     }
 
     /**
+     * Atualiza os detalhes do pedido (destino e datas).
+     *
+     * Regra de negócio: somente pedidos em status "requested" podem ter
+     * os detalhes alterados pelo seu solicitante.
+     *
+     * @param TravelOrder $order
+     * @param array<string, mixed> $data
+     * @return TravelOrder
+     *
+     * @throws BusinessRuleException
+     */
+    public function updateDetails(TravelOrder $order, array $data): TravelOrder
+    {
+        if ($order->status !== TravelOrderStatus::Requested) {
+            throw new BusinessRuleException(
+                'Não foi possível alterar o pedido de viagem, pois ele já foi aprovado ou cancelado!',
+                409
+            );
+        }
+
+        return $this->repository->updateDetails($order, $data);
+    }
+
+    /**
      * Busca um pedido de viagem pelo ID.
      * Retorna o pedido encontrado ou null.
      *

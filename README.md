@@ -18,7 +18,7 @@ app/
 ├── Enums/              # TravelOrderStatus (requested, approved, cancelled)
 ├── Http/
 │   ├── Controllers/    # AuthController, TravelOrderController
-│   ├── Requests/       # StoreTravelOrderRequest, UpdateTravelOrderStatusRequest, ListTravelOrdersRequest
+│   ├── Requests/       # StoreTravelOrderRequest, UpdateTravelOrderRequest, UpdateTravelOrderStatusRequest, ListTravelOrdersRequest
 │   └── Resources/      # TravelOrderResource
 ├── Models/             # User, TravelOrder
 ├── Notifications/      # TravelOrderStatusChanged
@@ -171,6 +171,7 @@ Todos os endpoints possuem prefixo `/api`. Endpoints protegidos requerem header 
 | GET    | `/api/travel-orders`                | Listar pedidos (paginado) | Sim  |
 | POST   | `/api/travel-orders`                | Criar pedido              | Sim  |
 | GET    | `/api/travel-orders/{id}`           | Consultar pedido por ID   | Sim  |
+| PATCH  | `/api/travel-orders/{id}`           | Atualizar detalhes (destino/datas) | Sim  |
 | PATCH  | `/api/travel-orders/{id}/status`    | Atualizar status          | Sim  |
 
 #### POST `/api/travel-orders`
@@ -190,6 +191,7 @@ Todos os endpoints possuem prefixo `/api`. Endpoints protegidos requerem header 
     "data": {
         "id": 1,
         "user_id": 1,
+        "solicitante": "João Silva",
         "destination": "São Paulo - SP",
         "departure_date": "2026-04-15",
         "return_date": "2026-04-20",
@@ -214,6 +216,18 @@ Todos os endpoints possuem prefixo `/api`. Endpoints protegidos requerem header 
 
 Exemplo: `GET /api/travel-orders?status=approved&departure_from=2026-04-01&per_page=10`
 
+#### PATCH `/api/travel-orders/{id}`
+
+Atualiza destino e datas. Apenas o solicitante pode editar e somente quando o pedido estiver em status `requested` (409 se já aprovado/cancelado).
+
+```json
+{
+    "destination": "São Paulo - SP",
+    "departure_date": "2026-04-15",
+    "return_date": "2026-04-20"
+}
+```
+
 #### PATCH `/api/travel-orders/{id}/status`
 
 ```json
@@ -227,10 +241,11 @@ Valores aceitos: `approved`, `cancelled`.
 ## Regras de Negócio
 
 1. **Criação** — pedido é criado sempre com status `requested`, vinculado ao usuário autenticado
-2. **Atualização de status** — apenas `approved` ou `cancelled`; o dono do pedido **não pode** alterar o próprio status (403)
-3. **Cancelamento pós-aprovação** — permitido, porém não é possível cancelar se a data de ida já passou (409)
-4. **Acesso** — cada usuário só visualiza seus próprios pedidos (Policy + filtro no Repository)
-5. **Notificação** — disparo automático de notificação no banco de dados (tabela `notifications`) quando o status muda, para o usuário dono do pedido
+2. **Atualização de detalhes** — apenas o solicitante pode editar destino/datas, e somente se o status for `requested` (409 se aprovado ou cancelado)
+3. **Atualização de status** — apenas `approved` ou `cancelled`; o dono do pedido **não pode** alterar o próprio status (403)
+4. **Cancelamento pós-aprovação** — permitido, porém não é possível cancelar se a data de ida já passou (409)
+5. **Acesso** — cada usuário só visualiza seus próprios pedidos (Policy + filtro no Repository)
+6. **Notificação** — disparo automático de notificação no banco de dados (tabela `notifications`) quando o status muda, para o usuário dono do pedido
 
 ## Testes
 

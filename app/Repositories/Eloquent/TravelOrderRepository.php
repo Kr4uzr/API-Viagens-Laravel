@@ -43,7 +43,7 @@ class TravelOrderRepository implements TravelOrderRepositoryInterface
      */
     public function listForUser(int $userId, array $filters = []): LengthAwarePaginator
     {
-        $query = TravelOrder::where('user_id', $userId);
+        $query = TravelOrder::with('user')->where('user_id', $userId);
 
         if (! empty($filters['status'])) {
             $query->where('status', TravelOrderStatus::from($filters['status']));
@@ -83,6 +83,24 @@ class TravelOrderRepository implements TravelOrderRepositoryInterface
     public function updateStatus(TravelOrder $order, string $status): TravelOrder
     {
         $order->update(['status' => $status]);
+
+        return $order->refresh();
+    }
+
+    /**
+     * Atualiza os detalhes do pedido (destino, data de ida e de retorno).
+     *
+     * @param TravelOrder $order
+     * @param array<string, mixed> $data
+     * @return TravelOrder
+     */
+    public function updateDetails(TravelOrder $order, array $data): TravelOrder
+    {
+        $order->update([
+            'destination' => $data['destination'],
+            'departure_date' => $data['departure_date'],
+            'return_date' => $data['return_date'],
+        ]);
 
         return $order->refresh();
     }

@@ -43,4 +43,13 @@ class TravelOrderPolicy
     {
         return $user->id !== $order->user_id;
     }
+
+    /**
+     * Permite ao dono alterar os detalhes do pedido (destino/datas).
+     * A regra de "apenas antes de aprovar" é validada na camada de service.
+     */
+    public function updateDetails(User $user, TravelOrder $order): bool
+    {
+        return $user->id === $order->user_id;
+    }
 }

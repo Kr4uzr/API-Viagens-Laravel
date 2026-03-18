@@ -17,6 +17,7 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('travel-orders', TravelOrderController::class)->only(['index', 'store', 'show']);
+    Route::patch('travel-orders/{travel_order}', [TravelOrderController::class, 'updateDetails']);
     Route::patch('travel-orders/{travel_order}/status', [TravelOrderController::class, 'updateStatus'])
         ->name('travel-orders.update-status');
 });
