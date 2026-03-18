@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TravelOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -12,4 +13,10 @@ Route::prefix('auth')->group(function () {
         Route::post('refresh', [AuthController::class, 'refresh']);
         Route::get('me', [AuthController::class, 'me']);
     });
+});
+
+Route::middleware('auth:api')->group(function () {
+    Route::apiResource('travel-orders', TravelOrderController::class)->only(['index', 'store', 'show']);
+    Route::patch('travel-orders/{travel_order}/status', [TravelOrderController::class, 'updateStatus'])
+        ->name('travel-orders.update-status');
 });
