@@ -1,0 +1,78 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-viagens-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - /var/www/html/vendor
+    networks:
+      - api-viagens-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - PHP_IDE_CONFIG=serverName=api-viagens
+
+  nginx:
+    image: nginx:alpine
+    container_name: api-viagens-nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - api-viagens-network
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.0
+    container_name: api-viagens-mysql
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT_HOST:-3306}:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-api_viagens}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password123}
+      MYSQL_USER: ${DB_USERNAME:-api_viagens_user}
+      TZ: America/Sao_Paulo
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - api-viagens-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: api-viagens-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${PMA_PORT:-8080}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    networks:
+      - api-viagens-network
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  api-viagens-network:
+    driver: bridge
