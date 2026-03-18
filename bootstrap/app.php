@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\BusinessRuleException;
+use App\Models\TravelOrder;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -57,6 +58,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
             if ($request->expectsJson()) {
+                $previous = $e->getPrevious();
+                if ($previous instanceof ModelNotFoundException && $previous->getModel() === TravelOrder::class) {
+                    return response()->json([
+                        'message' => 'Viagem não encontrada.',
+                    ], 404);
+                }
                 return response()->json([
                     'message' => 'Rota não encontrada.',
                 ], 404);

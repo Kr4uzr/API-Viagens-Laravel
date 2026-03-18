@@ -119,7 +119,7 @@ php artisan serve
 | `DB_USERNAME`    | Usuário do banco               | `api_viagens_user`  |
 | `DB_PASSWORD`    | Senha do banco                 | `password123`       |
 | `JWT_SECRET`     | Chave secreta JWT              | (gerada automaticamente) |
-| `MAIL_MAILER`    | Driver de envio de e-mail      | `log` (em dev, grava em `storage/logs`) |
+| `CACHE_STORE`    | Driver de cache (JWT blacklist usa para logout/refresh) | `database` |
 
 ## Endpoints da API
 
@@ -230,7 +230,7 @@ Valores aceitos: `approved`, `cancelled`.
 2. **Atualização de status** — apenas `approved` ou `cancelled`; o dono do pedido **não pode** alterar o próprio status (403)
 3. **Cancelamento pós-aprovação** — permitido, porém não é possível cancelar se a data de ida já passou (409)
 4. **Acesso** — cada usuário só visualiza seus próprios pedidos (Policy + filtro no Repository)
-5. **Notificação** — disparo automático de notificação (e-mail) quando o status muda, enviada ao e-mail cadastrado do usuário dono do pedido
+5. **Notificação** — disparo automático de notificação no banco de dados (tabela `notifications`) quando o status muda, para o usuário dono do pedido
 
 ## Testes
 

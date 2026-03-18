@@ -200,7 +200,8 @@ class TravelOrderEndpointTest extends TestCase
     {
         $response = $this->getJson('/api/travel-orders/99999', $this->authHeaders());
 
-        $response->assertStatus(404);
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Viagem não encontrada.']);
     }
 
     public function test_show_travel_order_returns_403_for_other_users_order(): void
