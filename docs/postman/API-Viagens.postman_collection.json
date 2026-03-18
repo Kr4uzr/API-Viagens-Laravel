@@ -1,0 +1,469 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "API Viagens Corporativas",
+		"description": "Collection para testes da API de Viagens Corporativas Laravel.\n\n## Configuração\n\n1. Importe esta collection no Postman\n2. Configure a variável `base_url` (padrão: `http://localhost:8000/api`)\n3. Execute o request **Login** para salvar o token automaticamente\n4. Todos os requests autenticados usarão o token salvo via `{{token}}`",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"description": "Endpoints de autenticação JWT (registro, login, logout, refresh e dados do usuário).",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"João Silva\",\n    \"email\": \"joao@example.com\",\n    \"password\": \"senha1234\",\n    \"password_confirmation\": \"senha1234\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Registra um novo usuário e retorna o token JWT.\n\n**Campos obrigatórios:**\n- `name` (string, máx. 255)\n- `email` (string, email válido, único)\n- `password` (string, mín. 8 caracteres)\n- `password_confirmation` (string, deve ser igual ao password)"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('token', jsonData.authorization.token);",
+									"    pm.test('Token salvo automaticamente', function () {",
+									"        pm.expect(jsonData.authorization.token).to.be.a('string');",
+									"    });",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"joao@example.com\",\n    \"password\": \"senha1234\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Autentica o usuário e retorna o token JWT.\n\nO token é salvo automaticamente na variável `{{token}}` via script de teste.\n\n**Campos obrigatórios:**\n- `email` (string, email válido)\n- `password` (string)"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('token', jsonData.authorization.token);",
+									"    pm.test('Token salvo automaticamente', function () {",
+									"        pm.expect(jsonData.authorization.token).to.be.a('string');",
+									"    });",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Me",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "me"]
+						},
+						"description": "Retorna os dados do usuário autenticado.\n\nRequer token JWT válido no header Authorization."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "refresh"]
+						},
+						"description": "Gera um novo token JWT a partir do token atual.\n\nO novo token é salvo automaticamente na variável `{{token}}`."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('token', jsonData.authorization.token);",
+									"    pm.test('Token atualizado automaticamente', function () {",
+									"        pm.expect(jsonData.authorization.token).to.be.a('string');",
+									"    });",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Invalida o token JWT atual (logout).\n\nRequer token JWT válido no header Authorization."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set('token', '');",
+									"    pm.test('Token limpo após logout', function () {",
+									"        pm.expect(pm.collectionVariables.get('token')).to.equal('');",
+									"    });",
+									"}"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Travel Orders",
+			"description": "Endpoints de gerenciamento de pedidos de viagem (CRUD + atualização de status).",
+			"item": [
+				{
+					"name": "Criar Pedido",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"destination\": \"São Paulo - SP\",\n    \"departure_date\": \"2026-04-15\",\n    \"return_date\": \"2026-04-20\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/travel-orders",
+							"host": ["{{base_url}}"],
+							"path": ["travel-orders"]
+						},
+						"description": "Cria um novo pedido de viagem vinculado ao usuário autenticado.\n\nO pedido é criado com status `requested`.\n\n**Campos obrigatórios:**\n- `destination` (string, máx. 255)\n- `departure_date` (date, hoje ou futura)\n- `return_date` (date, igual ou posterior à departure_date)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pedidos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/travel-orders",
+							"host": ["{{base_url}}"],
+							"path": ["travel-orders"],
+							"query": [
+								{
+									"key": "status",
+									"value": "requested",
+									"description": "Filtrar por status (requested, approved, cancelled)",
+									"disabled": true
+								},
+								{
+									"key": "destination",
+									"value": "São Paulo",
+									"description": "Filtrar por destino (busca parcial)",
+									"disabled": true
+								},
+								{
+									"key": "departure_from",
+									"value": "2026-04-01",
+									"description": "Data de ida a partir de",
+									"disabled": true
+								},
+								{
+									"key": "departure_until",
+									"value": "2026-04-30",
+									"description": "Data de ida até",
+									"disabled": true
+								},
+								{
+									"key": "return_from",
+									"value": "2026-04-15",
+									"description": "Data de retorno a partir de",
+									"disabled": true
+								},
+								{
+									"key": "return_until",
+									"value": "2026-05-15",
+									"description": "Data de retorno até",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"description": "Itens por página (1-100, padrão: 15)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lista os pedidos de viagem do usuário autenticado com paginação.\n\n**Filtros opcionais (query params):**\n- `status` — requested, approved ou cancelled\n- `destination` — busca parcial por destino\n- `departure_from` / `departure_until` — intervalo de data de ida\n- `return_from` / `return_until` — intervalo de data de retorno\n- `per_page` — itens por página (1-100)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pedidos (com filtro de status)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/travel-orders?status=approved",
+							"host": ["{{base_url}}"],
+							"path": ["travel-orders"],
+							"query": [
+								{
+									"key": "status",
+									"value": "approved"
+								}
+							]
+						},
+						"description": "Exemplo de listagem filtrando por status `approved`."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pedidos (com filtro de período)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/travel-orders?departure_from=2026-04-01&departure_until=2026-04-30",
+							"host": ["{{base_url}}"],
+							"path": ["travel-orders"],
+							"query": [
+								{
+									"key": "departure_from",
+									"value": "2026-04-01"
+								},
+								{
+									"key": "departure_until",
+									"value": "2026-04-30"
+								}
+							]
+						},
+						"description": "Exemplo de listagem filtrando por período de ida (abril de 2026)."
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Pedido por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/travel-orders/1",
+							"host": ["{{base_url}}"],
+							"path": ["travel-orders", "1"]
+						},
+						"description": "Retorna os dados de um pedido de viagem pelo ID.\n\nRetorna 404 se o pedido não existir.\nRetorna 403 se o pedido pertencer a outro usuário."
+					},
+					"response": []
+				},
+				{
+					"name": "Aprovar Pedido",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"approved\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/travel-orders/1/status",
+							"host": ["{{base_url}}"],
+							"path": ["travel-orders", "1", "status"]
+						},
+						"description": "Aprova um pedido de viagem.\n\n**Regras:**\n- O dono do pedido NÃO pode alterar o status do próprio pedido (403)\n- Apenas outro usuário autenticado pode aprovar\n\n**Campos obrigatórios:**\n- `status` — \"approved\""
+					},
+					"response": []
+				},
+				{
+					"name": "Cancelar Pedido",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"cancelled\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/travel-orders/1/status",
+							"host": ["{{base_url}}"],
+							"path": ["travel-orders", "1", "status"]
+						},
+						"description": "Cancela um pedido de viagem.\n\n**Regras:**\n- O dono do pedido NÃO pode alterar o status do próprio pedido (403)\n- Não é possível cancelar um pedido aprovado cuja data de ida já passou (409)\n\n**Campos obrigatórios:**\n- `status` — \"cancelled\""
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
