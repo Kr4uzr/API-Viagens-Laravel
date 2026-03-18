@@ -15,6 +15,11 @@ class TravelOrder extends Model
     /** @use HasFactory<TravelOrderFactory> */
     use HasFactory;
 
+    /**
+     * Define os casts para os atributos do modelo.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -24,6 +29,11 @@ class TravelOrder extends Model
         ];
     }
 
+    /**
+     * Define a relação com o usuário.
+     *
+     * @return BelongsTo
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

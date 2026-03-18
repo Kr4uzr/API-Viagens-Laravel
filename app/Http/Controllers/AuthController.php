@@ -10,6 +10,14 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
+    /**
+     * Registra um novo usuário e retorna um token JWT.
+     * Retorna 201 Created com o usuário e o token.
+     * Retorna 422 se houver erro de validação.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -35,6 +43,15 @@ class AuthController extends Controller
         ], 201);
     }
 
+    /**
+     * Autentica o usuário e retorna um token JWT.
+     * Retorna 200 OK com o usuário e o token.
+     * Retorna 401 se as credenciais forem inválidas.
+     * Retorna 422 se houver erro de validação.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
@@ -59,11 +76,25 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Retorna os dados do usuário autenticado.
+     * Retorna 200 OK com o usuário.
+     * Retorna 401 se o token for inválido/ausente.
+     *
+     * @return JsonResponse
+     */
     public function me(): JsonResponse
     {
         return response()->json(auth('api')->user());
     }
 
+    /**
+     * Realiza logout (invalida o token atual).
+     * Retorna 200 OK com mensagem de sucesso.
+     * Retorna 401 se o token for inválido/ausente.
+     *
+     * @return JsonResponse
+     */
     public function logout(): JsonResponse
     {
         auth('api')->logout();
@@ -73,6 +104,13 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Gera um novo token JWT (refresh).
+     * Retorna 200 OK com o novo token.
+     * Retorna 401 se o token for inválido/ausente.
+     *
+     * @return JsonResponse
+     */
     public function refresh(): JsonResponse
     {
         $token = auth('api')->refresh();
